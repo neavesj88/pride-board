@@ -22,6 +22,8 @@
   --panel:#FFFFFF; --panel-ink:#1A1714; --panel-sub:#6B6258;
   --chip:#FFFFFF; --chip-ink:#1A1714; --chip-bd:rgba(0,0,0,.10);
   --bar:#A12428; --bar-ink:#FFFFFF;
+  /* stage surround: theme-independent, dark by default, user-selectable */
+  --stage:#16120F;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
 }
 html[data-theme="dark"]{
@@ -30,12 +32,12 @@ html[data-theme="dark"]{
   --turf:#1C2B22; --turf-2:#23362A; --turf-line:rgba(231,224,212,.66);
   --panel:#221C18; --panel-ink:#ECE7DF; --panel-sub:#A79C8E;
   --chip:#2A231E; --chip-ink:#ECE7DF; --chip-bd:rgba(255,255,255,.12);
-  --bar:#1C1613; --bar-ink:#F4EFE7;
+  --bar:#A12428; --bar-ink:#FFFFFF;   /* keep the maroon title bar in dark mode */
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;
   font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,sans-serif;
-  background:var(--paper); color:var(--ink); touch-action:none;
+  background:var(--stage); color:var(--ink); touch-action:none;
   -webkit-user-select:none; user-select:none}
 button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
 
@@ -58,7 +60,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .iconbtn svg{width:21px;height:21px}
 
 /* ---------- Stage ---------- */
-#stage{position:absolute;inset:0;overflow:hidden;background:var(--paper-2);touch-action:none}
+#stage{position:absolute;inset:0;overflow:hidden;background:var(--stage);touch-action:none}
 #world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 .fieldwrap{position:relative;box-shadow:var(--shadow);border-radius:6px;overflow:hidden}
 #field{display:block}
@@ -128,12 +130,16 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;margin:2px 0 4px;
   background:var(--chip);border:1px solid var(--chip-bd);border-radius:12px}
 .legend .li{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--panel-sub)}
-.legend .lg{width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;
-  position:relative;background:var(--maroon);border:2px solid rgba(255,255,255,.85);overflow:hidden}
-.legend .lg.sq{border-radius:28%}
-.legend .lg .lshaft{position:absolute;width:3.5px;height:32px;background:var(--gold);border-radius:2px;z-index:0}
-.legend .lg .lmid{position:absolute;inset:5px;border-radius:50%;border:2px solid rgba(255,255,255,.92);z-index:2}
-.legend .lg .lring{position:absolute;width:30px;height:30px;border-radius:32%;border:2px dashed var(--gold)}
+.legend .lg{width:30px;height:30px;flex:none;position:relative;display:grid;place-items:center}
+.legend .lg .lgdisc{width:22px;height:22px;border-radius:50%;background:var(--maroon);
+  border:2px solid rgba(255,255,255,.85);position:relative;z-index:1}
+.legend .lg .lgdisc.sq{border-radius:30%}
+.legend .lg .lshaft{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:3px;height:30px;background:var(--gold);border-radius:2px;z-index:0}
+.legend .lg .lmid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.92);z-index:2}
+.legend .lg .lring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:30px;height:30px;border-radius:34%;border:2px dashed var(--gold);z-index:0}
 .addbtn{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;
   background:var(--chip);border:1px solid var(--chip-bd);color:var(--chip-ink);text-align:left}
 .addbtn:active{transform:scale(.97)}
@@ -174,6 +180,8 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .nameinput::placeholder{color:var(--panel-sub)}
 input[type=range]{accent-color:var(--maroon);height:26px}
 .rng{width:48%;max-width:200px}
+.bgsw{margin:0;justify-content:flex-end;flex-wrap:nowrap;gap:6px}
+.bgsw .sw{width:26px;height:26px;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(127,127,127,.35)}
 
 /* colour picker swatch list for arrows */
 .arrowcols{display:flex;gap:8px;flex-wrap:wrap}
@@ -327,6 +335,10 @@ html[data-theme="dark"] .toast.warn{background:#E5564B;color:#1A0c0a}
     <div><div class="lab">Player size</div><div class="sub">Discs start small — drag to enlarge</div></div>
     <input type="range" class="rng" id="tokSize" min="0.6" max="1.7" step="0.05" value="1" aria-label="Player size">
   </div>
+  <div class="row">
+    <div><div class="lab">Background</div><div class="sub">Dark suits a phone screen</div></div>
+    <div class="swatches bgsw" id="bgSwatches"></div>
+  </div>
   <h3>Plays</h3>
   <div class="btnrow">
     <button class="bigbtn ghost" id="saveSlot">Save play</button>
@@ -399,6 +411,14 @@ let homeColor = '#A12428';
 let awayColor = '#2E5FA8';
 let drawColor = '#E2B33C';     // run arrows / free draw
 let passColor = '#FFFFFF';     // pass arrows (dashed)
+
+/* stage background — independent of the light/dark theme, dark by default */
+const BG_PRESETS = [
+  ['#16120F','Charcoal'],['#0E1418','Slate'],['#000000','Black'],
+  ['#2A1113','Maroon'],['#223040','Navy'],['#EAE2D5','Light']
+];
+let bgColor = '#16120F';
+function applyBg(c){ bgColor=c; document.documentElement.style.setProperty('--stage', c); }
 
 /* token store: {id, team:'home'|'away'|'ball', role:'attack'|'mid'|'defence'|'goalie'|'ball'|'cone', x,y (field metres), label, flag} */
 let tokens = [];
@@ -594,8 +614,10 @@ function renderTokens(){
     if(t.role==='goalie')  inner += `<div class="gring" style="width:${D+11}px;height:${D+11}px"></div>`;
     // disc (square-ish for goalie)
     const discCls = t.role==='goalie' ? 'disc gsquare' : 'disc';
-    // MIDFIELD marker (short or long-pole mid): concentric inner ring, no stray bars
-    const ring = (t.role==='mid'||t.role==='midlong') ? `<div class="midring" style="inset:${Math.max(3,Math.round(D*0.22))}px"></div>` : '';
+    // MIDFIELD marker (short or long-pole mid): concentric inner ring when labels are
+    // off; when labels are on the "M" already identifies the role, so skip the ring
+    // to keep the number legible.
+    const ring = ((t.role==='mid'||t.role==='midlong') && !showLabels) ? `<div class="midring" style="inset:${Math.max(3,Math.round(D*0.22))}px"></div>` : '';
     inner += `<div class="${discCls}" style="width:${D}px;height:${D}px;background:${col};font-size:${Math.max(9,Math.round(D*0.42))}px">
                 ${ring}<span class="lbl">${showLabels ? (t.label||'') : ''}</span></div>`;
     el.innerHTML = inner;
@@ -920,11 +942,11 @@ function buildAdd(){
   // legend explaining the shape language
   const lg=$('#legend');
   if(lg) lg.innerHTML =
-    `<span class="li"><span class="lg"><span style="position:relative;z-index:3;font-size:11px;font-weight:800">A</span></span>Attack · short</span>`+
-    `<span class="li"><span class="lg"><span class="lmid"></span><span style="position:relative;z-index:3;font-size:11px;font-weight:800">M</span></span>Midfield · short</span>`+
-    `<span class="li"><span class="lg"><span class="lshaft"></span><span class="lmid"></span><span style="position:relative;z-index:3;font-size:11px;font-weight:800">M</span></span>Midfield · long pole</span>`+
-    `<span class="li"><span class="lg"><span class="lshaft"></span><span style="position:relative;z-index:3;font-size:11px;font-weight:800">D</span></span>Defence · long pole</span>`+
-    `<span class="li"><span class="lg sq"><span class="lring"></span><span style="position:relative;z-index:3;font-size:11px;font-weight:800">G</span></span>Goalie</span>`;
+    `<span class="li"><span class="lg"><span class="lgdisc"></span></span>Attack · A</span>`+
+    `<span class="li"><span class="lg"><span class="lgdisc"></span><span class="lmid"></span></span>Midfield · M</span>`+
+    `<span class="li"><span class="lg"><span class="lshaft"></span><span class="lgdisc"></span><span class="lmid"></span></span>Midfield LSM · M</span>`+
+    `<span class="li"><span class="lg"><span class="lshaft"></span><span class="lgdisc"></span></span>Defence · D</span>`+
+    `<span class="li"><span class="lg"><span class="lring"></span><span class="lgdisc sq"></span></span>Goalie · G</span>`;
   // position, title, sub
   const roles=[
     ['attack','Attack','Short stick · A'],
@@ -982,6 +1004,16 @@ function dropFormation(){
 
 /* ----- Teams sheet ----- */
 const ARROW_PALETTE = ['#FFFFFF','#E2B33C','#A12428','#2E5FA8','#0E7C4A','#111418','#E2701E'];
+function buildBg(){
+  const el=$('#bgSwatches'); if(!el) return;
+  el.innerHTML = BG_PRESETS.map(([h,n])=>{
+    const on = h.toLowerCase()===bgColor.toLowerCase() ? ' on' : '';
+    return `<button class="sw${on}" data-bg="${h}" title="${n}" aria-label="${n}" style="background:${h}"></button>`;
+  }).join('');
+  el.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    applyBg(b.dataset.bg); buildBg(); savePrefs();
+  }));
+}
 function buildSwatches(){
   $('#dotHome').style.background=homeColor;
   $('#dotAway').style.background=awayColor;
@@ -1152,8 +1184,8 @@ function drawTokensTo(o){
     else { o.beginPath();o.arc(p.x,p.y,D,0,7);o.fill();
       if(!isBall){o.lineWidth=2.4;o.strokeStyle='rgba(255,255,255,.92)';o.stroke();}
       else{o.lineWidth=2;o.strokeStyle='rgba(0,0,0,.25)';o.stroke();} }
-    // midfield marker: concentric inner ring (short or long-pole mid)
-    if(t.role==='mid'||t.role==='midlong'){o.lineWidth=Math.max(1.5,D*0.18);o.strokeStyle='rgba(255,255,255,.92)';
+    // midfield marker: concentric inner ring (short or long-pole mid), only when labels off
+    if((t.role==='mid'||t.role==='midlong') && !showLabels){o.lineWidth=Math.max(1.5,D*0.18);o.strokeStyle='rgba(255,255,255,.92)';
       o.beginPath();o.arc(p.x,p.y,D*0.52,0,7);o.stroke();}
     if(t.flag){o.strokeStyle=drawColor;o.lineWidth=3;o.beginPath();o.arc(p.x,p.y,D+5,0,7);o.stroke();}
     if(showLabels && !isBall && t.label){
@@ -1174,7 +1206,7 @@ $('#btnTheme').addEventListener('click',()=>{
   $('#themeIcon').outerHTML = theme==='dark'
     ? `<svg id="themeIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 0 1 9.5 4a.6.6 0 0 0-.8-.8 9.2 9.2 0 1 0 12.1 12.1.6.6 0 0 0-.8-.8z"/></svg>`
     : `<svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>`;
-  document.querySelector('meta[name=theme-color]').setAttribute('content', theme==='dark'?'#15110F':'#A12428');
+  document.querySelector('meta[name=theme-color]').setAttribute('content', '#A12428');
   drawField(); savePrefs();
 });
 
@@ -1185,7 +1217,7 @@ $('#zfit').addEventListener('click',fitField);
 
 /* ============ PREFS ============ */
 function savePrefs(){
-  localStorage.setItem('pride_prefs', JSON.stringify({theme,orient,showLabels,snap,tokenScale,homeColor,awayColor,drawColor,passColor}));
+  localStorage.setItem('pride_prefs', JSON.stringify({theme,orient,showLabels,snap,tokenScale,bgColor,homeColor,awayColor,drawColor,passColor}));
 }
 function loadPrefs(){
   try{
@@ -1195,6 +1227,7 @@ function loadPrefs(){
     if('showLabels'in d)showLabels=d.showLabels;
     if('snap'in d)snap=d.snap;
     if('tokenScale'in d)tokenScale=d.tokenScale;
+    if(d.bgColor)bgColor=d.bgColor;
     if(d.homeColor)homeColor=d.homeColor;
     if(d.awayColor)awayColor=d.awayColor;
     if(d.drawColor)drawColor=d.drawColor;
@@ -1205,9 +1238,10 @@ function loadPrefs(){
   document.querySelectorAll('#segLabels button').forEach(b=>b.classList.toggle('on',(b.dataset.l==='1')===showLabels));
   document.querySelectorAll('#segSnap button').forEach(b=>b.classList.toggle('on',(b.dataset.s==='1')===snap));
   if($('#tokSize')) $('#tokSize').value=tokenScale;
+  applyBg(bgColor);
   if(theme==='dark'){
     $('#themeIcon').outerHTML=`<svg id="themeIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 14.5A8 8 0 0 1 9.5 4a.6.6 0 0 0-.8-.8 9.2 9.2 0 1 0 12.1 12.1.6.6 0 0 0-.8-.8z"/></svg>`;
-    document.querySelector('meta[name=theme-color]').setAttribute('content','#15110F');
+    document.querySelector('meta[name=theme-color]').setAttribute('content','#A12428');
   }
 }
 
@@ -1215,7 +1249,7 @@ function loadPrefs(){
 function init(){
   loadPrefs();
   drawField();
-  buildAdd(); buildSwatches();
+  buildAdd(); buildSwatches(); buildBg();
   dropFormation();
   renderTokens(); renderShapes();
   fitField();
