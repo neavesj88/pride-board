@@ -1,0 +1,11 @@
+# OS / editor cruft
+Thumbs.db
+Desktop.ini
+.DS_Store
+*~
+.vscode/
+.idea/
+
+# Official Lacrosse Australia field-markings PDF — kept local, not redistributed
+docs-LA-Unified-Field-2024.pdf
+*.pdf
