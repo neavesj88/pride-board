@@ -1,4 +1,4 @@
-# Pride Board
+# Lion Board
 
 A simple **lacrosse coaching whiteboard** that runs in any web browser — on a phone, tablet, or
 computer. Drag players around a to‑scale field, draw run/pass arrows, set up plays, and save or
@@ -15,7 +15,7 @@ The board works best when you open it from a **web link** (a web address). When 
 link, your phone can add it to your home screen as a proper app, with the club crest as the icon.
 
 > Ask whoever set it up for the link (it will look something like
-> `https://neavesj88.github.io/pride-board`). If no one has hosted it yet, see
+> `https://neavesj88.github.io/lion-board`). If no one has hosted it yet, see
 > **"Putting it online"** at the bottom — it's a one‑time, 2‑minute job.
 
 ### On an Android phone (Chrome)
@@ -79,7 +79,7 @@ free option is **GitHub Pages**:
 2. Under **Build and deployment → Source**, choose **Deploy from a branch**.
 3. Set the branch to **`main`** and the folder to **`/ (root)`**, then **Save**.
 4. Wait ~1 minute, refresh, and GitHub shows your link
-   (e.g. `https://neavesj88.github.io/pride-board`). Share that with your coaches.
+   (e.g. `https://neavesj88.github.io/lion-board`). Share that with your coaches.
 
 Any other static host works too (Netlify, Cloudflare Pages, etc.) — just upload `index.html`.
 
