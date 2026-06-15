@@ -100,6 +100,14 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
   background:rgba(255,255,255,.12);color:var(--bar-ink);transition:background .15s, transform .08s}
 .iconbtn:active{transform:scale(.92);background:rgba(255,255,255,.24)}
 .iconbtn svg{width:21px;height:21px}
+/* keep the app name fully visible once there are several top-bar buttons:
+   tighten the icons + spacing on narrow phones */
+@media (max-width:430px){
+  .topbar{gap:5px}
+  .iconbtn{width:36px;height:36px;border-radius:10px}
+  .iconbtn svg{width:19px;height:19px}
+  .brand .ttl b{font-size:14px}
+}
 
 /* ---------- Stage ---------- */
 #stage{position:absolute;inset:0;overflow:hidden;background:var(--stage);touch-action:none}
@@ -269,6 +277,9 @@ html[data-theme="dark"] .toast.warn{background:#E5564B;color:#1A0c0a}
     <div class="ttl"><b>Lion Board</b><span>Coaches Board</span></div>
   </div>
   <div class="bar-spacer"></div>
+  <button class="iconbtn" id="btnReset" title="Reset to starting line-up" aria-label="Reset board">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3 4.5V9h4.5"/></svg>
+  </button>
   <button class="iconbtn" id="btnTheme" title="Toggle dark / light" aria-label="Toggle theme">
     <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"/></svg>
   </button>
@@ -988,7 +999,7 @@ let toastT;
 function toast(msg, warn){const el=$('#toast');el.textContent=msg;
   el.classList.toggle('warn', !!warn);
   el.classList.add('show');
-  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'), warn?2600:1600);}
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'), warn?5000:3400);}
 
 // rules: a team may have at most 4 long poles (defence + long-pole mids) on the field
 function countLongpoles(team){ return tokens.filter(t=>t.team===team && isLongpole(t.role)).length; }
@@ -1047,6 +1058,13 @@ function closeSheet(name){
 });
 $('#btnTeams').addEventListener('click',()=>openSheet('Teams'));
 $('#btnMenu').addEventListener('click',()=>openSheet('Menu'));
+// top-bar reset: confirm first (it's a one-tap destructive button), then put
+// the players back to the starting line-up and clear any arrows/drawings.
+$('#btnReset').addEventListener('click',()=>{
+  if(!confirm('Reset the board to the starting line-up? This clears the current players and arrows.')) return;
+  shapes=[]; dropFormation(); renderShapes(); fitField();
+  toast('Board reset to the starting line-up');
+});
 $('#teamsDone').addEventListener('click',()=>closeSheet('Teams'));
 
 /* ----- Add sheet content ----- */
