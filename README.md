@@ -48,5 +48,5 @@ inline in `index.html` (see the `F` field model near the top of the script).
 
 ---
 
-A field lacrosse coaches board. Default team colours: maroon `#A12428` and blue `#2E5FA8`, with a
-gold `#E2B33C` accent.
+A field lacrosse coaches board. Default team colours: maroon `#6E1A24` and blue `#2E5FA8`, with a
+gold `#E2B33C` accent. The PWA/home-screen icon is the club crest on the maroon.
