@@ -142,7 +142,7 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
   position:relative;z-index:1}
 .ricon .rd.sq{border-radius:30%}
 .ricon .rshaft{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:4px;height:36px;background:var(--gold);border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.3);z-index:0}
+  width:5px;height:46px;background:var(--gold);border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.35);z-index:0}
 .ricon .rring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   width:34px;height:34px;border-radius:32%;border:2px dashed var(--gold);z-index:0}
 .addbtn{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;
@@ -1029,16 +1029,18 @@ function dropFormation(){
   H('goalie',cx,gB+1.2);                                    // IN the bottom goal
   // two close defenders inside the fan at ~45° off the goal, one higher above the fan
   H('defence',cx-7,gB-7); H('defence',cx+7,gB-7); H('defence',cx,gB-18);
-  // midfield grouped close together on the home restraining line (16m below centre)
-  H('mid',cx-5,F.L/2+F.restrain); H('mid',cx,F.L/2+F.restrain); H('mid',cx+5,F.L/2+F.restrain);
-  H('attack',16,gT+16);  H('attack',cx,gT+11);  H('attack',F.W-16,gT+16);  // pressuring opp fan
+  // face-off midfield: M1 over the centre on the goalie's side, M2/M3 just behind the wing lines
+  H('mid',cx,F.L/2+1.5); H('mid',F.wingEdge,F.L/2+8); H('mid',F.W-F.wingEdge,F.L/2+8);
+  // attack set up outside the fan — all further from the goal than the defenders
+  H('attack',15,gT+13);  H('attack',F.W-15,gT+13);  H('attack',cx,gT+22);
   // --- Away team (defends top goal, attacks bottom) ---
   A('goalie',cx,gT-1.2);                                    // IN the top goal
   // two close defenders inside the fan at ~45° off the goal, one higher above the fan
   A('defence',cx-7,gT+7); A('defence',cx+7,gT+7); A('defence',cx,gT+18);
-  // midfield grouped close together on the away restraining line (16m above centre)
-  A('mid',cx-5,F.L/2-F.restrain); A('mid',cx,F.L/2-F.restrain); A('mid',cx+5,F.L/2-F.restrain);
-  A('attack',16,gB-16);  A('attack',cx,gB-11);  A('attack',F.W-16,gB-16);
+  // face-off midfield: M1 over the centre on the goalie's side, M2/M3 just behind the wing lines
+  A('mid',cx,F.L/2-1.5); A('mid',F.wingEdge,F.L/2-8); A('mid',F.W-F.wingEdge,F.L/2-8);
+  // attack set up outside the fan — all further from the goal than the defenders
+  A('attack',15,gB-13);  A('attack',F.W-15,gB-13);  A('attack',cx,gB-22);
   renderTokens();
 }
 
