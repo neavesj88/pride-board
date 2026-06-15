@@ -163,6 +163,14 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);
   opacity:0;pointer-events:none;transition:opacity .22s}
 .scrim.show{opacity:1;pointer-events:auto}
+/* centred yes/no confirm dialog (used instead of the browser confirm popup) */
+.confirmbox{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);
+  z-index:50;background:var(--panel);color:var(--panel-ink);border:1px solid var(--line);
+  border-radius:16px;box-shadow:var(--shadow);padding:18px 18px 14px;
+  width:min(340px,calc(100vw - 48px));opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s}
+.confirmbox.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.confirmbox p{margin:2px 2px 14px;font-size:15px;line-height:1.45}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;
   background:var(--panel);color:var(--panel-ink);
   border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.4);
@@ -421,6 +429,17 @@ html[data-theme="dark"] .toast.warn{background:#E5564B;color:#1A0c0a}
     <button class="bigbtn primary" id="exportPdf">Save as PDF</button>
   </div>
   <p class="hint" style="margin-top:14px">Lion Board runs fully offline. Add it to your home screen from the browser share menu for a full-screen app. Built for field lacrosse coaches.</p>
+</div>
+
+<!-- CONFIRM DIALOG: an in-app yes/no box (replaces the browser's confirm popup,
+     which can be unreliable in installed apps and some mobile browsers). -->
+<div class="scrim" id="scrimConfirm"></div>
+<div class="confirmbox" id="confirmBox" role="alertdialog" aria-modal="true" aria-labelledby="confirmMsg">
+  <p id="confirmMsg"></p>
+  <div class="btnrow">
+    <button class="bigbtn ghost" id="confirmNo">Cancel</button>
+    <button class="bigbtn danger" id="confirmYes">Reset</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1060,12 +1079,32 @@ function closeSheet(name){
 });
 $('#btnTeams').addEventListener('click',()=>openSheet('Teams'));
 $('#btnMenu').addEventListener('click',()=>openSheet('Menu'));
-// top-bar reset: confirm first (it's a one-tap destructive button), then put
-// the players back to the starting line-up and clear any arrows/drawings.
+// in-app confirm dialog — used instead of the browser's confirm() popup, which
+// can be blocked/unreliable in installed apps and some mobile browsers.
+let confirmCb=null;
+function askConfirm(msg, yesLabel, onYes){
+  $('#confirmMsg').textContent=msg;
+  $('#confirmYes').textContent=yesLabel||'OK';
+  confirmCb=onYes;
+  $('#scrimConfirm').classList.add('show');
+  $('#confirmBox').classList.add('show');
+}
+function closeConfirm(){
+  $('#scrimConfirm').classList.remove('show');
+  $('#confirmBox').classList.remove('show');
+  confirmCb=null;
+}
+$('#confirmNo').addEventListener('click', closeConfirm);
+$('#scrimConfirm').addEventListener('click', closeConfirm);
+$('#confirmYes').addEventListener('click', ()=>{ const cb=confirmCb; closeConfirm(); if(cb) cb(); });
+
+// top-bar reset: ask first (it's a one-tap destructive button), then put the
+// players back to the starting line-up and clear any arrows/drawings.
 $('#btnReset').addEventListener('click',()=>{
-  if(!confirm('Reset the board to the starting line-up? This clears the current players and arrows.')) return;
-  shapes=[]; dropFormation(); renderShapes(); fitField();
-  toast('Board reset to the starting line-up');
+  askConfirm('Reset to the starting line-up? This replaces your current players and arrows.', 'Reset', ()=>{
+    shapes=[]; dropFormation(); renderShapes(); fitField();
+    toast('Board reset to the starting line-up');
+  });
 });
 $('#teamsDone').addEventListener('click',()=>closeSheet('Teams'));
 
