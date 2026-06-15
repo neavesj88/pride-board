@@ -1012,18 +1012,21 @@ function checkLongpoles(team){
   }
 }
 
-/* soft offside check: a team is offside with more than 6 outfield players
-   (goalie excluded) over the halfway line in its attacking half.
-   The home team (default maroon) attacks the top goal (small y); the away team the bottom. */
-function countOverHalf(team){
+/* soft offside check — works BOTH ways. With 1 goalie + 9 outfielders a team
+   must keep at least 4 players back and at least 3 up, i.e. at most 6 outfield
+   players (goalie excluded) in EITHER half. Too many forward leaves the defence
+   short; too many back leaves the attack short — both are offside. The home team
+   (default maroon) attacks the top goal (small y); the away team the bottom. */
+function countHalf(team, attackingHalf){
+  // attackingHalf=true → the half this team attacks; false → its defensive half
   return tokens.filter(t=>t.team===team && t.role!=='goalie' && t.role!=='ball' && t.role!=='cone'
-    && (team==='home' ? t.y < F.L/2 : t.y > F.L/2)).length;
+    && (attackingHalf === (team==='home' ? t.y < F.L/2 : t.y > F.L/2))).length;
 }
 function checkOffside(){
-  const over = ['home','away'].filter(tm=>countOverHalf(tm) > 6);
+  const over = ['home','away'].filter(tm=> countHalf(tm,true) > 6 || countHalf(tm,false) > 6 );
   if(over.length){
     const who = over.map(tm=>teamName(tm)).join(' & ');
-    toast('⚠ Offside — '+who+': 7+ players over halfway', true);
+    toast('⚠ Offside — '+who+': too many players in one half', true);
     haptic();
   }
 }
@@ -1139,16 +1142,16 @@ function dropFormation(){
   H('goalie',cx,gB+1.2);                                    // IN the bottom goal
   // two close defenders inside the fan at ~45° off the goal, one higher above the fan
   H('defence',cx-7,gB-7); H('defence',cx+7,gB-7); H('defence',cx,gB-18);
-  // face-off midfield: M1 over the centre on the goalie's side, M2/M3 just behind the wing lines
-  H('mid',cx,F.L/2+1.5); H('mid',F.wingEdge,F.L/2+8); H('mid',F.W-F.wingEdge,F.L/2+8);
+  // face-off midfield: M1 over the centre; M2/M3 just OUTSIDE the wing lines, close to the centre line
+  H('mid',cx,F.L/2+1.5); H('mid',F.wingEdge-2,F.L/2+3); H('mid',F.W-F.wingEdge+2,F.L/2+3);
   // attack set up outside the fan — all further from the goal than the defenders
   H('attack',15,gT+13);  H('attack',F.W-15,gT+13);  H('attack',cx,gT+22);
   // --- Away team (defends top goal, attacks bottom) ---
   A('goalie',cx,gT-1.2);                                    // IN the top goal
   // two close defenders inside the fan at ~45° off the goal, one higher above the fan
   A('defence',cx-7,gT+7); A('defence',cx+7,gT+7); A('defence',cx,gT+18);
-  // face-off midfield: M1 over the centre on the goalie's side, M2/M3 just behind the wing lines
-  A('mid',cx,F.L/2-1.5); A('mid',F.wingEdge,F.L/2-8); A('mid',F.W-F.wingEdge,F.L/2-8);
+  // face-off midfield: M1 over the centre; M2/M3 just OUTSIDE the wing lines, close to the centre line
+  A('mid',cx,F.L/2-1.5); A('mid',F.wingEdge-2,F.L/2-3); A('mid',F.W-F.wingEdge+2,F.L/2-3);
   // attack set up outside the fan — all further from the goal than the defenders
   A('attack',15,gB-13);  A('attack',F.W-15,gB-13);  A('attack',cx,gB-22);
   renderTokens();
