@@ -387,7 +387,7 @@ const F = {
   drawCircle: 9,   // centre circle radius (9m)
   drawLine: 3,     // centre draw line length (3m)
   restrain: 16,    // restraining line: 16m from centre (32m band, 34m off each end)
-  wingOff: 18,     // wing line offset from the long axis (18m), per LA spec
+  wingEdge: 7,     // wing line: 7m in from each sideline (close end of the 7–12m spec)
   wingLen: 10,     // wing line length, centred on the centre line (10m)
   goalW: 1.83,     // goal mouth width
   goalDepth: 1.6   // modest, near-equilateral net triangle depth
@@ -540,7 +540,7 @@ function drawField(){
 
   // wing lines: short lines parallel to the sidelines, 18m off the long axis,
   // 10m long and centred on the centre line (face-off wing restraining marks).
-  [F.W/2 - F.wingOff, F.W/2 + F.wingOff].forEach(xx=>{
+  [F.wingEdge, F.W - F.wingEdge].forEach(xx=>{
     lineF(xx, F.L/2 - F.wingLen/2, xx, F.L/2 + F.wingLen/2);
   });
 
@@ -1029,13 +1029,15 @@ function dropFormation(){
   H('goalie',cx,gB+1.2);                                    // IN the bottom goal
   // two close defenders inside the fan at ~45° off the goal, one higher above the fan
   H('defence',cx-7,gB-7); H('defence',cx+7,gB-7); H('defence',cx,gB-18);
-  H('mid',wl,F.L/2+5);   H('mid',cx,F.L/2+4);   H('mid',wr,F.L/2+5);       // home wings just below centre
+  // midfield grouped close together on the home restraining line (16m below centre)
+  H('mid',cx-5,F.L/2+F.restrain); H('mid',cx,F.L/2+F.restrain); H('mid',cx+5,F.L/2+F.restrain);
   H('attack',16,gT+16);  H('attack',cx,gT+11);  H('attack',F.W-16,gT+16);  // pressuring opp fan
   // --- Away team (defends top goal, attacks bottom) ---
   A('goalie',cx,gT-1.2);                                    // IN the top goal
   // two close defenders inside the fan at ~45° off the goal, one higher above the fan
   A('defence',cx-7,gT+7); A('defence',cx+7,gT+7); A('defence',cx,gT+18);
-  A('mid',wl,F.L/2-5);   A('mid',cx,F.L/2-4);   A('mid',wr,F.L/2-5);       // away wings just above centre
+  // midfield grouped close together on the away restraining line (16m above centre)
+  A('mid',cx-5,F.L/2-F.restrain); A('mid',cx,F.L/2-F.restrain); A('mid',cx+5,F.L/2-F.restrain);
   A('attack',16,gB-16);  A('attack',cx,gB-11);  A('attack',F.W-16,gB-16);
   renderTokens();
 }
