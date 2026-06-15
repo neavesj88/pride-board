@@ -717,9 +717,8 @@ function renderTokens(){
     const shaftW = Math.max(3, Math.round(D*0.16));
     // LONG POLE (defence or midfield long pole): gold shaft through the disc
     if(isLongpole(t.role)) inner += `<div class="shaft" style="height:${D+16}px;width:${shaftW}px"></div>`;
-    // GOALIE: dashed square ring
-    if(t.role==='goalie')  inner += `<div class="gring" style="width:${D+11}px;height:${D+11}px"></div>`;
-    // disc (square-ish for goalie)
+    // GOALIE: identified by its rounded-square shape + "G" (no ring — that read
+    // like a highlight). disc class is square-ish for goalie.
     const discCls = t.role==='goalie' ? 'disc gsquare' : 'disc';
     // MIDFIELD marker (short or long-pole mid): concentric inner ring when labels are
     // off; when labels are on the "M" already identifies the role, so skip the ring
@@ -1076,8 +1075,7 @@ function discIcon(team,role){
   const txt = ROLE_LETTER[role] || '';
   let m='';
   if(isLongpole(role)) m+=`<span class="rshaft"></span>`;   // defence + LSM: gold pole
-  if(role==='goalie')  m+=`<span class="rring"></span>`;    // goalie: dashed ring
-  const sq = role==='goalie' ? ' sq' : '';
+  const sq = role==='goalie' ? ' sq' : '';                  // goalie: rounded square (no ring)
   return `<span class="ricon">${m}<span class="rd${sq}" style="background:${col}">${txt}</span></span>`;
 }
 function buildAdd(){
@@ -1338,10 +1336,7 @@ function drawTokensTo(o){
     // long pole shaft (defence or midfield long pole)
     if(isLongpole(t.role)){o.strokeStyle=drawColor;o.lineWidth=4;o.lineCap='round';o.beginPath();
       o.moveTo(p.x,p.y-D-9);o.lineTo(p.x,p.y+D+9);o.stroke();}
-    // goalie dashed square ring
-    if(t.role==='goalie'){o.strokeStyle=drawColor;o.lineWidth=3;o.setLineDash([4,3]);
-      roundRect(o,p.x-D-5,p.y-D-5,(D+5)*2,(D+5)*2,7);o.stroke();o.setLineDash([]);}
-    // body: square-ish for goalie, circle otherwise
+    // body: square-ish for goalie (no ring), circle otherwise
     o.fillStyle=col;
     if(t.role==='goalie'){ roundRect(o,p.x-D,p.y-D,D*2,D*2,9); o.fill();
       o.lineWidth=2.4;o.strokeStyle='rgba(255,255,255,.92)';roundRect(o,p.x-D,p.y-D,D*2,D*2,9);o.stroke(); }
