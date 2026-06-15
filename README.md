@@ -1,10 +1,13 @@
 # Pride Board
 
-A single-file, offline-first **field lacrosse coaches board** (PWA) for **Subiaco Lacrosse Club**.
+A single-file, offline-first **field lacrosse coaches board** (PWA).
 Touch-interactive, zoomable, and built around the **Lacrosse Australia Unified Field Markings**.
 
-Everything lives in one `index.html` (~240 KB) — the club logo, app icons, and PWA manifest are all
+Everything lives in one `index.html` (~240 KB) — the logo, app icons, and PWA manifest are all
 embedded as base64 data URIs, so it runs with no server, no build step, and no network.
+
+Teams are referred to by their **colour** (defaulting to maroon and blue), so it isn't tied to any
+one club.
 
 ## Use it
 
@@ -22,9 +25,12 @@ for a full-screen app. If served via GitHub Pages, it works straight from the re
   plus ball and cone.
 - **Smart numbering** — fills the lowest unused number per team; mid and LSM share the `M` sequence.
 - **Long-pole guard** — warns when a team exceeds 4 long poles (defence + LSM) on the field.
+- **Offside guard** — soft warning when a team has more than 6 outfield players (goalie excluded)
+  over the halfway line.
 - **Adjustable player size** — discs start small; a slider in the menu enlarges them, and the
   preference is remembered.
-- **Portrait / landscape**, **dark / light** themes, **save / load** a play, and snap-to-grid.
+- **Portrait / landscape**, **dark / light** themes, a **selectable stage background** (dark by
+  default), **save / load** a play, and snap-to-grid.
 - **Export** — one-tap **PNG screenshot** (camera button), and **Save as PDF** with a named play
   (dependency-free PDF generation).
 
@@ -42,4 +48,5 @@ inline in `index.html` (see the `F` field model near the top of the script).
 
 ---
 
-Built for Subiaco Lacrosse Club. Brand maroon `#A12428`, gold `#E2B33C`, opponent blue `#2E5FA8`.
+A field lacrosse coaches board. Default team colours: maroon `#A12428` and blue `#2E5FA8`, with a
+gold `#E2B33C` accent.
