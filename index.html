@@ -130,16 +130,18 @@ button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;margin:2px 0 4px;
   background:var(--chip);border:1px solid var(--chip-bd);border-radius:12px}
 .legend .li{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--panel-sub)}
-.legend .lg{width:30px;height:30px;flex:none;position:relative;display:grid;place-items:center}
-.legend .lg .lgdisc{width:22px;height:22px;border-radius:50%;background:var(--maroon);
-  border:2px solid rgba(255,255,255,.85);position:relative;z-index:1}
-.legend .lg .lgdisc.sq{border-radius:30%}
-.legend .lg .lshaft{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:3px;height:30px;background:var(--gold);border-radius:2px;z-index:0}
-.legend .lg .lmid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.92);z-index:2}
-.legend .lg .lring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:30px;height:30px;border-radius:34%;border:2px dashed var(--gold);z-index:0}
+/* role icon used by BOTH the legend key and the Add buttons, so they always
+   match each other and the field: a coloured disc with a centred letter, a
+   gold long-pole shaft that protrudes top & bottom, and the goalie square+ring */
+.ricon{flex:none;position:relative;display:grid;place-items:center;width:34px;height:34px}
+.ricon .rd{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  font-weight:800;font-size:12px;line-height:1;border:2px solid rgba(255,255,255,.9);
+  position:relative;z-index:1}
+.ricon .rd.sq{border-radius:30%}
+.ricon .rshaft{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:4px;height:36px;background:var(--gold);border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.3);z-index:0}
+.ricon .rring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:34px;height:34px;border-radius:32%;border:2px dashed var(--gold);z-index:0}
 .addbtn{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;
   background:var(--chip);border:1px solid var(--chip-bd);color:var(--chip-ink);text-align:left}
 .addbtn:active{transform:scale(.97)}
@@ -325,7 +327,7 @@ html[data-theme="dark"] .toast.warn{background:#E5564B;color:#1A0c0a}
   </div>
   <div class="row">
     <div><div class="lab">Player labels</div><div class="sub">Show role letters / numbers on discs</div></div>
-    <div class="seg" id="segLabels"><button data-l="1">On</button><button data-l="0" class="on">Off</button></div>
+    <div class="seg" id="segLabels"><button data-l="1" class="on">On</button><button data-l="0">Off</button></div>
   </div>
   <div class="row">
     <div><div class="lab">Snap to grid</div><div class="sub">Eases tidy spacing while dragging</div></div>
@@ -396,7 +398,7 @@ let tokenScale = 1;
 function tokD(){ return Math.round(TOKBASE * tokenScale); }
 
 let orient = 'port';        // 'port' | 'land'
-let showLabels = false;
+let showLabels = true;      // role letters/numbers on discs, on by default
 let snap = false;
 let tool = 'move';
 let theme = 'light';
@@ -657,6 +659,7 @@ function addToken(team, role, fx, fy){
              label: roleLabel(team,role), flag:false};
   tokens.push(t); renderTokens();
   if(isLongpole(role)) checkLongpoles(team);
+  checkOffside();
   return t;
 }
 
@@ -837,7 +840,7 @@ function endPointer(e){
     if(live.type==='arrow' && dist2f(live.pts[0],live.pts[1])<0.8){ live=null; renderShapes(); }
     else { live.id=sid++; shapes.push(live); live=null; renderShapes(); }
   }
-  if(drag){ drag=null; }
+  if(drag){ const moved = drag.id && drag.moved; drag=null; if(moved) checkOffside(); }
 }
 stage.addEventListener('pointerup', endPointer);
 stage.addEventListener('pointercancel', endPointer);
@@ -897,6 +900,22 @@ function checkLongpoles(team){
   }
 }
 
+/* soft offside check: a team is offside with more than 6 outfield players
+   (goalie excluded) over the halfway line in its attacking half.
+   Home (Subiaco) attacks the top goal (small y); the opposition attacks the bottom. */
+function countOverHalf(team){
+  return tokens.filter(t=>t.team===team && t.role!=='goalie' && t.role!=='ball' && t.role!=='cone'
+    && (team==='home' ? t.y < F.L/2 : t.y > F.L/2)).length;
+}
+function checkOffside(){
+  const over = ['home','away'].filter(tm=>countOverHalf(tm) > 6);
+  if(over.length){
+    const who = over.map(tm=>tm==='home'?'Subiaco':'Opposition').join(' & ');
+    toast('⚠ Offside — '+who+': 7+ players over halfway', true);
+    haptic();
+  }
+}
+
 /* ============ TOOLBAR ============ */
 function setTool(t){
   tool=t;
@@ -930,23 +949,22 @@ $('#teamsDone').addEventListener('click',()=>closeSheet('Teams'));
 /* ----- Add sheet content ----- */
 function discIcon(team,role){
   const col = team==='home'?homeColor:team==='away'?awayColor:'#ccc';
-  let extra='';
-  if(isLongpole(role)) extra+=`<div class="shaft" style="height:46px;position:absolute"></div>`;
-  if(role==='goalie') extra+=`<div class="gring" style="width:42px;height:42px;position:absolute"></div>`;
-  if(role==='mid'||role==='midlong') extra+=`<div class="midring" style="inset:6px"></div>`;
-  const rad = role==='goalie' ? 'border-radius:28%' : '';
   const txt = ROLE_LETTER[role] || '';
-  return `<span class="ico" style="background:${col};${rad};overflow:hidden">${extra}<span style="position:relative;z-index:3">${txt}</span></span>`;
+  let m='';
+  if(isLongpole(role)) m+=`<span class="rshaft"></span>`;   // defence + LSM: gold pole
+  if(role==='goalie')  m+=`<span class="rring"></span>`;    // goalie: dashed ring
+  const sq = role==='goalie' ? ' sq' : '';
+  return `<span class="ricon">${m}<span class="rd${sq}" style="background:${col}">${txt}</span></span>`;
 }
 function buildAdd(){
   // legend explaining the shape language
   const lg=$('#legend');
   if(lg) lg.innerHTML =
-    `<span class="li"><span class="lg"><span class="lgdisc"></span></span>Attack · A</span>`+
-    `<span class="li"><span class="lg"><span class="lgdisc"></span><span class="lmid"></span></span>Midfield · M</span>`+
-    `<span class="li"><span class="lg"><span class="lshaft"></span><span class="lgdisc"></span><span class="lmid"></span></span>Midfield LSM · M</span>`+
-    `<span class="li"><span class="lg"><span class="lshaft"></span><span class="lgdisc"></span></span>Defence · D</span>`+
-    `<span class="li"><span class="lg"><span class="lring"></span><span class="lgdisc sq"></span></span>Goalie · G</span>`;
+    `<span class="li">${discIcon('home','attack')}Attack · A</span>`+
+    `<span class="li">${discIcon('home','mid')}Midfield · M</span>`+
+    `<span class="li">${discIcon('home','midlong')}Midfield LSM · M</span>`+
+    `<span class="li">${discIcon('home','defence')}Defence · D</span>`+
+    `<span class="li">${discIcon('home','goalie')}Goalie · G</span>`;
   // position, title, sub
   const roles=[
     ['attack','Attack','Short stick · A'],
