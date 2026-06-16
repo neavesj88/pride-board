@@ -1450,12 +1450,6 @@ function loadPrefs(){
 /* Start-up. init() runs once when the page opens: load saved settings, draw the
    field, build the menus, drop the starting line-up, then fit it to the screen. */
 function init(){
-  // carry over anything saved under the previous "Pride Board" name, so a
-  // rename doesn't lose your settings or your saved play
-  ['prefs','play'].forEach(k=>{
-    const old=localStorage.getItem('pride_'+k);
-    if(old!=null && localStorage.getItem('lion_'+k)==null) localStorage.setItem('lion_'+k, old);
-  });
   loadPrefs();
   drawField();
   buildAdd(); buildSwatches(); buildBg();
